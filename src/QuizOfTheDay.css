@@ -76,8 +76,8 @@ crtapp|ScoreView s|Label
 	fontSize: 16
 }
 
-/*s|Button
+s|Button /*new change*/
 {
 	fontFamily: "_sans";
 	fontSize: 25;
-}*/
+}
