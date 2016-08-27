@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				 xmlns:s="library://ns.adobe.com/flex/spark" 
+				 xmlns:components="spark.components.*"
+				title=" [ Offline Assignment Utility ] " 
+				creationComplete="initApp()"
+				backgroundColor="#B8DBFF">
+	<fx:Style source="QuizOfTheDay.css"/>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:HTTPService id="metadatasrv" />
+		<s:HTTPService id="promotionMsgSrv" />
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			import com.moinee.crtapp.core.AppSessionObj;
+			import com.moinee.crtapp.core.Constants;
+			import com.moinee.crtapp.core.XmlSqlUtil;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.ArrayCollection;
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.components.ViewNavigatorApplication;
+			
+			private var app:ViewNavigatorApplication = FlexGlobals.topLevelApplication as ViewNavigatorApplication;
+			
+			private var metaData:Object = new Object();
+			[Bindable] private var appTitle:String;// = "Welcome to Quiz App"; //#b3f1c0
+			[Bindable] private var appDescription:String = "";
+			[Bindable] private var appLogoSource:String ="";
+			[Bindable] private var appVersion:String =""; //ATT
+			
+			[Bindable] private var mySessionObj:AppSessionObj = new AppSessionObj();
+			[Bindable] private var msgListData:ArrayCollection = new ArrayCollection();
+			
+			private var classValue = 9; //default is 9
+			private var classNineCount = 0;
+			private var classTenCount = 0;
+			private var classNineDisplayTxt = ""; //??
+			private var classTenDisplayTxt = "" //??
+			
+			private function initApp():void
+			{
+				lbl_AppTitle.text = "";
+				lbl_AppTitle.setStyle("fontFamily","mangal");
+				app.navigator.actionBar.navigationGroup.enabled = false;
+				
+				metadatasrv.url="com/moinee/crtapp/data/metadata.xml";
+				metadatasrv.addEventListener(ResultEvent.RESULT,questionService_resultHandler);
+				metadatasrv.addEventListener(FaultEvent.FAULT,questionsrv_faultHandler);
+				metadatasrv.send();
+			}
+			private function questionService_resultHandler(event:ResultEvent):void
+			{
+				metaData = event.result.list.metadata;
+				this.appTitle = metaData.AppTitle;
+				this.appDescription = metaData.AppDescription;
+				this.appLogoSource = metaData.AppLogoSource;
+				this.appVersion = "Version "+metaData.Version; //ATT
+				AppSessionObj.currentVersion = parseFloat(metaData.Version)*100; //comparing later
+				//this.appLogoSource = "@Embed(source='"+metaData.AppLogoSource+"')";
+				//this.initPromotionMsg();
+				
+				//for class 9
+				if(metaData.ClassNineAssignmentJsonTxt != null)
+				{
+					processAssignments(metaData.ClassNineAssignmentJsonTxt, 9);
+				}
+				//todo for UI msg
+				
+				//for class 10
+				if(metaData.ClassTenAssignmentJsonTxt != null)
+				{
+					processAssignments (metaData.ClassTenAssignmentJsonTxt, 10);
+				}
+				//todo for UI msg
+			}
+			protected function questionsrv_faultHandler(event:FaultEvent):void
+			{
+				//this.mySessionObj.errorMsg = event.message.toString();
+				//navigator.pushView(CustomFaultView, this.mySessionObj); //change as per latest...
+			}
+
+			private function processAssignments (assignmentJsonTxt:String, courseId:int):void
+			{
+				var dbName:String = "";
+				if(courseId == 9)
+				{
+					XmlSqlUtil.dbName = "appUsageC9.db"; //dbName = "";
+					classValue = 9;
+					classNineCount = 0;
+					if(XmlSqlUtil.checkIfDbExists() == false)
+					{
+						lbl_class9text.text = "IMP: Please install latest version of class 9 offline quiz academy application and run this utility again.";
+					}
+					else
+					{
+						assignmentDbUpdater(assignmentJsonTxt);
+						lbl_class9text.text = "Assignment data for Class 9 is up-to-date now.\n( Total records added - "+this.classNineCount+" )";
+					}
+					
+				
+				}
+				else if(courseId == 10)
+				{
+					XmlSqlUtil.dbName = "appUsageC10a.db";
+					classValue = 10;
+					classTenCount = 0;
+					if(XmlSqlUtil.checkIfDbExists() == false)
+					{
+						lbl_class10text.text = "IMP: Please install latest version of class 10 offline quiz academy application and run this utility again.";
+					}
+					else
+					{
+						assignmentDbUpdater(assignmentJsonTxt);
+						lbl_class10text.text = "Assignment data for Class 10 is up-to-date now.\n( Total records added - "+this.classTenCount+" )";
+					}	
+				}
+				
+				//assignmentDbUpdater(assignmentJsonTxt);
+				
+				//manage display
+				//text 1 - check and display if current class app is existing on PC and how many assignments added vs how many are there now.
+				
+				//text 2 - display or hide the app download link (show only if not existing on PC)
+				//TO DO
+			}
+				
+			private function assignmentDbUpdater(assignmentJsonTxt:String):void
+			{	
+				//get data in json
+				var resultJson:String = assignmentJsonTxt.toString();//'{"ASSIGNMENT_DETAILS":[{"ASSIGNMENT_ID":"615","ASSIGNMENT_NAME":"Practice Assignment 25/3/2016","ACTIVITY_ID":"284","ACTIVITY_TYPE":"Test","ASSIGNED_TO":"1","ASSIGNED_TO_TYPE":"4","ASSIGNED_BY":"ashish.vyas7@gmail.com","STATUS":"Active","QUESTION_IDS":"4778,1902,1965,2078,2103,2330,2382,2478,2656,2690,3395,3414,3422,3482,3486,2823,2861,2888,2917,2938,3641,3703,3755,3885,3903,4001,7448,3989,3958,3973","TRACK_CLOSURE_COMPLETION_STATUS":"","TRACK_CLOSURE":"","START_TIME":"2016-01-22 00:00:00","END_TIME":"0000-00-00 00:30:00","EXPIRE_TIME":"2016-02-10 15:58:00","CREATED_ON":"2016-01-18 04:52:07","MODIFIED_ON":"2016-01-12 03:29:15","QUESTION_SET_SIZE":"60","QUESTION_ORDER":"Sequence"}]}';//assignmentJsonTxt;
+				trace(resultJson);
+				//convert json to object
+				var jsonObj:Object = JSON.decode(resultJson);
+				//sync it with db for new assignment
+				//???calculate duration in minutes before db sync and also check that same assignment id record is not inserted again in table.
+				//loop if there are more than one object
+				var tempAssignmentArray:Array = jsonObj.ASSIGNMENT_DETAILS;
+				for(var i:int=0; tempAssignmentArray.length > i; i++)
+				{
+					//check if the same assignment is inserted already in the db or not?
+					var onlineAssignmentId:int = parseInt(tempAssignmentArray[i].ASSIGNMENT_ID); //coming from online
+					
+					var assignmentName:String = tempAssignmentArray[i].ASSIGNMENT_NAME;
+					var assignmentType:String = tempAssignmentArray[i].ACTIVITY_TYPE;
+					//tempAssignmentArray[i].CREATED_ON;
+					var sTime:String = tempAssignmentArray[i].START_TIME;
+					
+					var eTime:String = tempAssignmentArray[i].END_TIME; //used for duration if activity type is Test
+					if(eTime.length > 16)
+					{
+						eTime = eTime.substring(14,eTime.lastIndexOf(":")); //temp solution
+						/* var tempDateTime:Date = DateFormatter.parseDateString(tempAssignmentArray[i].END_TIME);
+						eTime = tempDateTime.getMinutes().toString(); */
+					}
+					
+					var expiryTime:String = tempAssignmentArray[i].EXPIRE_TIME;
+					//tempAssignmentArray[i].MODIFIED_ON;	
+					var qIds:String = tempAssignmentArray[i].QUESTION_IDS;	
+					var qOrder:String = tempAssignmentArray[i].QUESTION_ORDER;	
+					var qSetSize:String = tempAssignmentArray[i].QUESTION_SET_SIZE;	
+					
+					//tempAssignmentArray[i].STATUS	"Active"	
+					var trackClosureC:String = tempAssignmentArray[i].TRACK_CLOSURE;	
+					//tempAssignmentArray[i].TRACK_CLOSURE_COMPLETION_STATUS
+					var existingCount:int = XmlSqlUtil.isAssignmentRecordExisting(onlineAssignmentId);
+					//insert in db
+					if(existingCount == 0)
+					{
+						XmlSqlUtil.insertAssignmentStatsRecordInLocalDb(onlineAssignmentId,assignmentName,assignmentType,qIds,sTime,eTime,expiryTime,trackClosureC,qSetSize,qOrder)
+						trace("done");
+						//Include a global counter as well for screen display
+						//TO-DO
+						if(classValue == 9)
+							classNineCount++;
+						if(classValue == 10)
+							classTenCount++;
+					}
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<!-- Hide the default navigationContent defined on the main application -->
+	<!--<s:NavigatorContent enabled="false" visible="false"/>-->
+	
+	<s:Scroller width="100%" height="100%">
+		<s:VGroup horizontalAlign="center" width="100%" height="100%">
+			<s:Spacer width="10" height="10"/>
+			<!--<s:BitmapImage right="0" id="tImage">
+				<s:source>
+					<s:MultiDPIBitmapSource id="itImage" source160dpi="@Embed('com/moinee/crtapp/assets/osAppIcon/icon48.png')"
+											source240dpi="@Embed('com/moinee/crtapp/assets/osAppIcon/icon48.png')"
+											source320dpi="@Embed('com/moinee/crtapp/assets/osAppIcon/icon.png')"/>
+				</s:source>
+			</s:BitmapImage>-->
+			<!--<s:TextInput x="10" y="37" id="tInput"/>
+			<s:Button id="ttt" click="changeImage()" label="button"/>
+			<s:Image id="image1" 
+					 source="http://phonegap.com/uploads/blog/2013-04/bracket_phonegap_logo.png"/>
+			<s:Image id="blankImage" source="{tLink}"/>-->
+			<s:Label width="80%" fontWeight="bold" fontSize="18" fontFamily="mangal" textDecoration="underline"
+					 text="QUIZ ACADEMY SERIES"
+					 click="navigateToURL(new URLRequest('http://www.quizacademy.org'))"
+					 textAlign="center" verticalAlign="middle"/>
+			<s:Label width="80%" fontWeight="normal" fontSize="12" fontFamily="mangal"
+					 text="(www.quizacademy.org)"
+					 textAlign="center" verticalAlign="middle"/>
+			<!--<s:Image height="120" width="120" source="@Embed(source='com/moinee/crtapp/assets/logo.jpg')"/>-->
+			<s:Spacer width="10" height="5"/>
+			<s:Label id="lbl_AppTitle" width="80%" fontSize="28" fontFamily="mangal"
+					 text="&#8889; {this.appTitle} &#8889;"
+					 textAlign="center" verticalAlign="middle"/>
+			<s:Spacer width="10" height="5"/>
+			<s:Label id="lbl_AppVersion" width="80%" fontSize="12" fontFamily="mangal"
+					 text="{this.appVersion}"
+					 textAlign="center" verticalAlign="middle"/>
+			<s:Spacer width="10" height="5"/>
+			<s:Label id="lbl_keyMessage" width="80%" fontSize="14" fontFamily="mangal"
+					 text="{this.appDescription}"
+					 textAlign="center" verticalAlign="middle" />
+			<s:Spacer height="15"/>
+			<s:Button label="Download - Offline QuizAcademy apps" fontSize="12" width="50%" maxWidth="260" height="10%" click="navigateToURL(new URLRequest('http://www.quizacademy.org/download'))"/>
+			<s:Spacer height="30"/>
+			<s:Label width="80%" fontSize="20" fontWeight="bold"
+					 text="[DONE - Processing Completed]"
+					 textAlign="center" verticalAlign="middle" />
+			<s:Spacer height="20"/>
+			<s:Label id="lbl_class9text" width="80%" fontSize="16" fontWeight="bold"
+					 text="{this.classNineDisplayTxt}"
+					 textAlign="center" verticalAlign="middle" />
+			<s:Spacer height="15"/>
+			<s:Label id="lbl_class10text" width="80%" fontSize="16" fontWeight="bold"
+					 text="{this.classTenDisplayTxt}"
+					 textAlign="center" verticalAlign="middle" />
+			<s:Spacer height="20"/>
+			<s:Label width="80%" fontSize="16"
+					 text="[To use these assignments, start offline QuizAcademy application]"
+					 textAlign="center" verticalAlign="middle" />
+			<s:Spacer height="15"/>
+			<s:Button label="Exit" width="50%" maxWidth="260" height="10%" click="NativeApplication.nativeApplication.exit();"/>
+			<s:Spacer width="10" height="10"/>
+			<s:Label text="Released for Moinee Foundation as part of Project Utkarsh" 
+					 textAlign="center" verticalAlign="middle" fontSize="12" fontStyle="italic" width="70%"/>
+			<s:Spacer width="10" height="25"/>
+			<s:Label text="{Constants.COPYRIGHT_TEXT}"
+					 click="navigateToURL(new URLRequest('http://www.moinee.com'))"/>
+			<s:Label color="#454545" fontSize="10" paddingLeft="10" paddingRight="10"
+					 text="Disclaimer - Moinee Systems has developed and provided this application as-is with no warranty on any direct or indirect losses due to use of this application. The content is compiled from competent sources but 100% accuracy can not be guaranteed. Moinee Systems will not be liable for any inaccuracy."
+					 textAlign="center" width="90%" 
+					 click="navigateToURL(new URLRequest('http://www.moinee.com'))"/>
+			<s:Spacer height="20"/>
+		</s:VGroup>
+	</s:Scroller>
+</components:View>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ViewNavigatorApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+							xmlns:s="library://ns.adobe.com/flex/spark"
+							splashScreenImage="@Embed('com/moinee/crtapp/assets/images/crt_splash.jpg')"
+							splashScreenMinimumDisplayTime="5000"
+							firstView="com.moinee.crtapp.views.StartUp"
+							applicationDPI="160"
+							creationComplete="initfStartup()"
+							>
+	<fx:Style source="QuizOfTheDay.css"/>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		@namespace crtapps "com.moinee.crtapp.views.*";
+		
+	/* Every os-platform @ 160dpi */
+	/* @media (application-dpi: 160) {
+		crtapps|TopicView s|Button {
+			fontSize: 10;
+		}
+		crtapps|StartUp s|Button {
+			fontSize: 20;
+		}
+		crtapps|ActionsView s|Button{
+			fontSize: 20
+		}
+	} */
+	
+	/* IOS only @ 240dpi i.g. iPhone4*/
+	@media (application-dpi: 320) and (os-platform: "IOS") {
+	crtapps|StartUp s|Button {
+	fontSize: 16;
+	}
+	crtapps|ActionsView s|Button {
+		fontSize: 16;
+	}
+	crtapps|TopicView s|Button {
+		fontSize: 10;
+	}
+	crtapps|SubTopicView s|Button {
+		fontSize: 8;
+	}
+	s|Button {
+		fontSize: 12;
+	}
+	}
+	
+	/* IOS at 160dpi (ipad, iphone3S) or Android @ 160dpi */
+	@media (os-platform: "IOS") and (application-dpi:160), (os-platform: "ANDROID") and (application-dpi: 160) {
+	crtapps|TopicView s|Button {
+	fontSize: 16;
+	}
+	crtapps|SubTopicView s|Button {
+		fontSize: 16;
+	}
+	crtapps|StartUp s|Button {
+		fontSize: 20;
+	}
+	crtapps|ActionsView s|Button{
+		fontSize: 20
+	}
+	
+	}
+	
+	/* Every os-platform except Android  (like galaxy S, HTC desire) */
+	 @media not all and (os-platform: "Android") {
+		 crtapps|StartUp s|Button {
+			 fontSize: 16;
+		 }
+		 crtapps|ActionsView s|Button {
+			 fontSize: 16;
+		 }
+		 crtapps|TopicView s|Button {
+			 fontSize: 14;
+		 }
+		 crtapps|SubTopicView s|Button {
+			 fontSize: 14;
+		 }
+		 s|Button {
+			 fontSize: 16;
+		 }
+	}     
+	
+	/* Every os-platform except IOS @ any DPI */
+	@media not all and (os-platform: "IOS") {
+		s|Button {
+			fontSize: 16;
+		}
+		crtapps|StartUp s|Button {
+			fontSize: 20;
+		}
+		crtapps|ActionsView s|Button{
+			fontSize: 20
+		}
+		crtapps|TopicView s|Button {
+			fontSize: 12;
+		}
+		crtapps|SubTopicView s|Button {
+			fontSize: 12;
+		}
+	}
+	</fx:Style>
+	<fx:Script>
+		<![CDATA[
+		//	import spark.components.NavigatorContent;
+		
+			//import com.moinee.crtapp.views.UsageCounter;
+		
+			private function initfStartup():void
+			{
+				//start full screen - testing
+				//stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE; //did not work gave null pointer error in app
+				
+				//
+				
+				//var mycounter:UsageCounter = new UsageCounter();
+				//mycounter.increment("OfflineAssignmentUtil");
+				NativeApplication.nativeApplication.autoExit;
+			}
+		]]>
+	</fx:Script>
+	<fx:Script>
+		<![CDATA[
+			import com.moinee.crtapp.views.StartUp;
+			protected function goBackHandler():void
+			{
+				//if (navigator.length > 1)
+				if((navigator.activeView.className == "ScoreView") || (navigator.activeView.className == "CheckScore"))
+				{
+					navigator.popView(); //removes score view
+					navigator.popView(); //removes the quiz playing view to take back from where the quiz started.
+					if((navigator.activeView.className != "TopicView") || (navigator.activeView.className != "SubTopicView"))
+						navigator.pushView(StartUp);
+				} 
+				else if(navigator.activeView.className!="StartUp")
+				{
+					navigator.popView();
+				} 
+				else
+				{
+					NativeApplication.nativeApplication.exit();
+				}
+			}
+		]]>
+	</fx:Script>
+
+	
+	<s:navigationContent>
+		<s:Button label="HOME" fontSize="16"
+				  click="navigator.popToFirstView()"/>
+		<s:Button id="backButton" label="BACK" fontSize="16"
+				  click="goBackHandler()"
+				  visible="true"/>
+	</s:navigationContent>
+
+</s:ViewNavigatorApplication>

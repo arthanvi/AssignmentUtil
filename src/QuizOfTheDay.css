@@ -1,0 +1,83 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace qotd "com.atlabz.qotd.*";
+@namespace crtapp "com.moinee.crtapp.*";
+@namespace crtapp1 "com.atlabz.crtapp.*";
+@namespace components "spark.components.*";
+
+@font-face {
+	src: url("com/moinee/crtapp/assets/MANGAL.TTF");
+	fontFamily: "mangal";
+	embedAsCFF: true;
+}
+
+@font-face {
+	src: url("com/moinee/crtapp/assets/MANGAL.TTF");
+	fontFamily: "mangalNoCFF";
+	embedAsCFF: false;
+}
+
+global
+{
+	content-background-color: #FFFFFF;/*#28DF28; old color*/
+	color: #030303;
+	chrome-color: #FFD633;/*#7CBF84; old color*/ /*working - sets the background for all buttons or more (???).*/
+	text-align: left;
+	content-background-alpha: 0.47;
+	
+	/*backgroundColor: #B8DBFF;*/ /*working - sets the background for all components like labels etc.*/
+}
+
+/*s|Application
+{
+	backgroundColor: #B8DBFF;
+}*/
+
+s|View
+{
+	backgroundColor: #B8DBFF; /*working - sets the background for all views.*/
+}
+
+
+/*
+crtapp|StartUp s|Button
+{
+	backgroundColor: #B8DBFF;
+	color: #B8BBFF;
+}*/
+
+crtapp|StartUp s|Label
+{
+	fontSize: 16;
+}
+crtapp|ScoreView s|Label
+{	
+	fontSize: 20;
+}
+crtapp|QuizView s|Button
+{
+	fontSize: 14;
+}
+
+crtapp|QuizView s|TextArea
+{
+	color: #3F3636; 
+	fontFamily:Verdana;
+	fontSize: 22;
+	textAlign:left;
+}
+
+crtapp|QuizView s|RadioButton
+{
+	fontSize: 22;
+}
+crtapp|ScoreView s|Label
+{
+	fontSize: 16
+}
+
+/*s|Button
+{
+	fontFamily: "_sans";
+	fontSize: 25;
+}*/
